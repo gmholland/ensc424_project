@@ -20,11 +20,11 @@ for k = 1:N_images
     min_index = fread(fid, 1, 'int16=>double');
     Ncounts = fread(fid, 1, 'uint16=>double');
     counts = fread(fid, Ncounts, 'uint32=>double');
-    Nsymbols = fread(fid, 1, 'uint32=>double');
     Nbits = fread(fid, 1, 'uint32=>double');
     imgq_enc = fread(fid, Nbits, 'ubit1=>double');
 
     % decode imgq_enc using arithmetic decoder
+    Nsymbols = frame_h*frame_w; 
     imgq_dec = arithdeco(imgq_enc, counts, Nsymbols);
     
     % convert imgq_dec to matrix

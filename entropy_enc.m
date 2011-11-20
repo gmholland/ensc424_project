@@ -11,7 +11,6 @@ function [] = entropy_enc(frame_h, frame_w, frameq, bitstream_name, N_images, qu
 %           min_index       int16
 %           Ncoutns         uint16
 %           counts          uint32*Ncounts
-%           Nsymbols        uint32
 %           Nbits           uint32
 %           imgq_enc        ubit1*Nbits
 
@@ -58,12 +57,10 @@ for k = 1:N_images
     fwrite(fid, counts, 'uint32');
 
     % encode imgq using arithmetic encoding
-    Nsymbols = length(imgq);
     imgq_enc = arithenco(imgq, counts);
     Nbits = length(imgq_enc);
 
     % write encoded bitstream
-    fwrite(fid, Nsymbols, 'uint32');
     fwrite(fid, Nbits, 'uint32');
     fwrite(fid, imgq_enc, 'ubit1');
 
