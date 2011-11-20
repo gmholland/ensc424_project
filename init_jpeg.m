@@ -31,11 +31,7 @@ zag = [0   1   5   6  14  15  27  28; ...
 
 % do a zig-zag scan of qt
 x = zeros(1,64);  
-for i = 1:8
-    for j = 1:8
-        x(zag(i,j)) = qt(i,j);
-    end
-end
+x(zag) = qt;
 qt = x;
 clear x
       
