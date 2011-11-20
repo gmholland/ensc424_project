@@ -27,6 +27,10 @@ end
 for quality = [5 10 25 40 50 70]
 
     fprintf('running at quality %d ...\n', quality);
+    
+    % time the operation at each quality level
+    tic;
+
     % encode images
     fprintf('\t running encoder...');
     im_encode(name, bitstream_name, N_images, quality);
@@ -70,6 +74,7 @@ for quality = [5 10 25 40 50 70]
         delete(strcat(dec_name, num2str(k-1), '.pgm'));
     end
     fprintf('done\n');
+    toc;
     
 end
 
