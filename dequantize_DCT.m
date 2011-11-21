@@ -17,7 +17,7 @@ if strcmp(quant_type, 'jpeg')
     [qt, zag] = init_jpeg(quality);
 % uniform quantizer
 elseif strcmp(quant_type, 'uniform')
-    qt = zeros(1,64) + 1;
+    qt = zeros(1,64) + 16;
     % zig-zag scan of the coefficients in 8x8 block
     zag = [0   1   5   6  14  15  27  28; ...
            2   4   7  13  16  26  29  42; ...
