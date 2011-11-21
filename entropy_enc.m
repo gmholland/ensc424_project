@@ -1,4 +1,4 @@
-function [] = entropy_enc(frame_h, frame_w, frameq, bitstream_name, N_images, quality)
+function [] = entropy_enc(frame_h, frame_w, frameq, mvxs, mvys, bitstream_name, N_images, quality)
 %ENTROPY_ENC Summary of this function goes here.
 %   [] = ENTROPY_ENC(INPUT_ARGS) Detailed explanation goes here.
 %
@@ -8,6 +8,8 @@ function [] = entropy_enc(frame_h, frame_w, frameq, bitstream_name, N_images, qu
 %           frame_w         uint16
 %           quality         uint8
 %       for each frame:
+%           mvxs            int8*frame_h*frame_w/64 (P frames only)
+%           mvys            int8*frame_h*frame_w/64 (P frames only)
 %           min_index       int16
 %           Ncoutns         uint16
 %           counts          uint32*Ncounts
@@ -23,6 +25,18 @@ fwrite(fid, quality, 'uint8');
 
 % encode each frame and add to bitstream
 for k = 1:N_images
+
+    % encode the motion vectors for P frames
+    if (k ~= 1)
+        % get mvx and mvy from motion vector arrays
+        mvx = mvxs(:,:,k-1);
+        mvy = mvys(:,:,k-1);
+        
+        % convert to row vectors
+        mvx = reshape(mvx, 1, frame_h*frame_w/64);
+        mvy = reshape(mvy, 1, frame_h*frame_w/64);
+        fwrite(fid, [mvx mvy], 'int8'); % TODO actually encode the mvs
+    end
 
     % get imgq from frameq
     imgq = frameq(:,:,k);

@@ -24,7 +24,7 @@ for k = 1:N_images
 end
 
 % run codec at various quality levels
-for quality = [5 10 25 40 50 70]
+for quality = [50]
 
     fprintf('running at quality %d ...\n', quality);
     

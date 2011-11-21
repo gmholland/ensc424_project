@@ -1,7 +1,12 @@
-function imgq = quantize_DCT(dct_frame, quality)
+function imgq = quantize_DCT(dct_frame, quant_type, quality)
 %QUANTIZE_DCT Quantize DCT coefficients
-%   IMGQ = QUANTIZE_DCT(DCT_FRAME, FRAME_TYPE) quantizes the image frame
-%   DCT_FRAME using the JPEG quantization matrix and zig-zag pattern. 
+%   IMGQ = QUANTIZE_DCT(DCT_FRAME, QUANT_TYPE, QUALITY) quantizes the image 
+%   frame DCT_FRAME using the quantization matrix and zig-zag pattern. 
+%   
+%   There are two options for QUANT_TYPE, 'jpeg' or 'uniform'. 'jpeg' uses
+%   jpeg quantizer for the given QUALITY while 'uniform' uses a uniform 
+%   quantizer.
+%
 %   The quantized DCT coefficients for each block appear in each row of 
 %   IMGQ. IMGQ is therefore a M*N/64 by 64 matrix where the dimensions of 
 %   DCT_FRAME are M by N.
@@ -9,7 +14,20 @@ function imgq = quantize_DCT(dct_frame, quality)
 [M, N] = size(dct_frame);
 
 % get quantization and zig-zag matrices
-[qt, zag] = init_jpeg(quality);
+if strcmp(quant_type, 'jpeg')
+    [qt, zag] = init_jpeg(quality);
+elseif strcmp(quant_type, 'uniform')
+    qt = zeros(1,64) + 1;
+    % zig-zag scan of the coefficients in 8x8 block
+    zag = [0   1   5   6  14  15  27  28; ...
+           2   4   7  13  16  26  29  42; ...
+           3   8  12  17  25  30  41  43; ...
+           9  11  18  24  31  40  44  53; ...
+           10  19  23  32  39  45  52  54; ...
+           20  22  33  38  46  51  55  60; ...
+           21  34  37  47  50  56  59  61; ...
+           35  36  48  49  57  58  62  63] + 1;
+end
 
 % subdivide dct_frame to a 4D array Y such that:
 % dct_frame = [   Y(:,:,1,1)    Y(:,:,1,2)  ...  Y(:,:1,N/8)

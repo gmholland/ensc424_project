@@ -1,4 +1,4 @@
-function [frame_h, frame_w, quality, frameq_dec] = entropy_dec(bitstream_name, N_images)
+function [frame_h, frame_w, quality, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images)
 %ENTROPY_DEC Summary of this function goes here.
 %   [] = ENTROPY_DEC(INPUT_ARGS) Detailed explanation goes here.
 
@@ -12,11 +12,25 @@ frame_w = res(2);
 clear res;
 quality = fread(fid, 1, 'uint8=>double');
 
-% initialize frameq based on frame_h, frame_w and 
+% initialize frameq based on frame_h, frame_w 
 frameq_dec = zeros(frame_h*frame_w/64, 64, N_images);
 
+% initialize mvxs and mvys based on frame_h and frame_w
+mvxs = zeros(frame_h/8, frame_w/8, N_images-1);
+mvys = zeros(frame_h/8, frame_w/8, N_images-1);
+
 for k = 1:N_images
+
     % read in info for each frame from bitstream to aid decoding
+    if (k ~= 1)
+        % motion vectors
+        mvx = fread(fid, frame_h*frame_w/64, 'int8=>double');
+        mvy = fread(fid, frame_h*frame_w/64, 'int8=>double');
+        mvxs(:,:,k-1) = reshape(mvx, frame_h/8, frame_w/8);
+        mvys(:,:,k-1) = reshape(mvy, frame_h/8, frame_w/8);
+        clear mvx mvy;
+    end
+
     min_index = fread(fid, 1, 'int16=>double');
     Ncounts = fread(fid, 1, 'uint16=>double');
     counts = fread(fid, Ncounts, 'uint32=>double');

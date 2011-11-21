@@ -1,15 +1,33 @@
-function dct_mat_dec = dequantize_DCT(imgq_dec, quality, M, N)
+function dct_mat_dec = dequantize_DCT(imgq_dec, M, N, quant_type, quality)
 %DEQUANTIZE_DCT Dequantize DCT coefficients
-%   DCT_MAT_DEC = DEQUANTIZE_DCT(IMGQ_DEC, QUALITY) dequantizes the DCT
-%   coefficients from IMQ_DEC where each row in IMQ_DEC corresponds to an
-%   8x8 block. Uses the JPEG quantization matrix and zig zag scan for the 
-%   given quality. The matrix of DCT coefficients for the frame is returned
-%   in DCT_MAT_DEC.
+%   DCT_MAT_DEC = DEQUANTIZE_DCT(IMGQ_DEC, M, N, QUANT_TYPE, QUALITY) 
+%   dequantizes the DCT coefficients from IMQ_DEC where each row in IMQ_DEC 
+%   corresponds to the 64 DCT coefficients of an 8x8 block. 
 %
-%   M and N are the frame height and width respectively.
+%   There are two options for QUANT_TYPE, 'jpeg' uses a JPEG like quantizer while
+%   'uniform' uses a uniform quantizer. If QUANT_TYPE is 'jpeg' QUALITY must be 
+%   given.
+%   
+%   The matrix of DCT coefficients for the frame is returned in DCT_MAT_DEC, where
+%   M and N are the frame height and width of the returned frame.
 
-% get qt and zig zag pattern based on quality
-[qt, zag] = init_jpeg(quality);
+% jpeg quantizer
+if strcmp(quant_type, 'jpeg')
+    % get qt and zig zag pattern based on quality
+    [qt, zag] = init_jpeg(quality);
+% uniform quantizer
+elseif strcmp(quant_type, 'uniform')
+    qt = zeros(1,64) + 1;
+    % zig-zag scan of the coefficients in 8x8 block
+    zag = [0   1   5   6  14  15  27  28; ...
+           2   4   7  13  16  26  29  42; ...
+           3   8  12  17  25  30  41  43; ...
+           9  11  18  24  31  40  44  53; ...
+           10  19  23  32  39  45  52  54; ...
+           20  22  33  38  46  51  55  60; ...
+           21  34  37  47  50  56  59  61; ...
+           35  36  48  49  57  58  62  63] + 1;
+end
 
 % get DC coefficients back using the differences stored in imgq_dec
 for i = 2:M*N/64
