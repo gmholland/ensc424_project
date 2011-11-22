@@ -102,6 +102,9 @@ end
 plot(bench_bitrates, bench_PSNRs, 'r');
 hold off;
 
+% store stats to MAT file
+save name MSEs PSNRs bitrates;
+
 fprintf('done\n');
 
 end
