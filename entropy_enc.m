@@ -32,6 +32,8 @@ fwrite(fid, quality, 'uint8');
 % encode each frame and add to bitstream
 for k = 1:N_images
 
+    fprintf(' .');
+
     % encode the motion vectors for P frames
     if (k ~= 1)
         % get mvx and mvy from motion vector arrays and convert to

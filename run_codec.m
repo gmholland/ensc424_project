@@ -24,7 +24,8 @@ for k = 1:N_images
 end
 
 % run codec at various quality levels
-for quality = [5, 30, 55, 80]
+qualities = [5, 15, 30, 65, 100]
+for quality = qualities
 
     fprintf('running at quality %d ...\n', quality);
     
@@ -103,7 +104,7 @@ plot(bench_bitrates, bench_PSNRs, 'r');
 hold off;
 
 % store stats to MAT file
-save name MSEs PSNRs bitrates;
+save(name, 'MSEs', 'PSNRs', 'bitrates');
 
 fprintf('done\n');
 

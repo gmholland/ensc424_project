@@ -21,6 +21,8 @@ mvys = zeros(frame_h/8, frame_w/8, N_images-1);
 
 for k = 1:N_images
 
+    fprintf(' .');
+
     % read in info for each frame from bitstream to aid decoding
     if (k ~= 1)
         % motion vectors

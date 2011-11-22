@@ -61,7 +61,7 @@ end
 % quality=50, qualtization table stays the same.
 for i = 1:64
     temp = (qt(i)*quality + 50)/100;
-    if (temp <= 0)
+    if (temp <= 1)
         temp = 1;
     elseif (temp > 255)
         temp = 255;
