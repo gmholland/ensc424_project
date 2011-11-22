@@ -41,7 +41,7 @@ for k = 1:N_images
         pred = mc_prediction(prev_dec(:,:,k-1), mvxs(:,:,k-1), mvys(:,:,k-1));
 
         % dequantize the DCT coefficients of mcpr
-        mcpr_dec = dequantize_DCT(imgq_dec, frame_h, frame_w, 'uniform');
+        mcpr_dec = dequantize_DCT(imgq_dec, frame_h, frame_w, 'uniform', quality);
 
         % perform 8x8 block IDCT to the residual frame
         mcpr_dec = blkproc(mcpr_dec, [8 8], idct2fun);

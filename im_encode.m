@@ -69,8 +69,8 @@ for k = 1:N_images
         mcpr = blkproc(mcpr, [8 8], dct2fun);
 
         % quantize/dequantize the DCT coefficients of residual frame
-        mcprq = quantize_DCT(mcpr, 'uniform');
-        mcpr = dequantize_DCT(mcprq, M, N, 'uniform');
+        mcprq = quantize_DCT(mcpr, 'uniform', quality);
+        mcpr = dequantize_DCT(mcprq, M, N, 'uniform', quality);
 
         % store mcprq in appropriate place in frameq so it can be entropy encoded
         frameq(:,:,k) = mcprq;
