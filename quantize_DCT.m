@@ -18,6 +18,18 @@ if strcmp(quant_type, 'jpeg')
     [qt, zag] = init_jpeg(quality);
 elseif strcmp(quant_type, 'uniform')
     qt = zeros(1,64) + 16;
+    % Scale the quantization table according to quality parameter. If
+    % quality=50, qualtization table stays the same.
+    for i = 1:64
+        temp = (qt(i)*quality + 50)/100;
+        if (temp <= 0)
+            temp = 1;
+        elseif (temp > 255)
+            temp = 255;
+        end
+        qt(i) = floor(temp);
+    end
+
     % zig-zag scan of the coefficients in 8x8 block
     zag = [0   1   5   6  14  15  27  28; ...
            2   4   7  13  16  26  29  42; ...
