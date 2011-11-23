@@ -77,7 +77,7 @@ if strcmp(zag_type, 'diagonal')
     end
 
 % horizontal scan
-else 
+elseif strcmp(zag_type, 'horizontal') 
     x = 2;
     y = 1;
     prev_move = 'R';
@@ -121,11 +121,52 @@ else
             end
         end
     end
-end
 
-% the vertical scan is the same as the transpose of horizontal scan
-if strcmp(zag_type, 'vertical')
-    zag = zag.';
+% vertical scan
+elseif strcmp(zag_type, 'vertical') 
+    x = 1;
+    y = 2;
+    prev_move = 'D';
+    for i = 2:frame_h*frame_w
+
+        zag(y,x) = i;
+
+        if (strcmp(prev_move, 'R'))
+            % if we're at the bottom side go up
+            if (y == frame_h)
+                y = y - 1;
+                prev_move = 'U';
+            % if we're at the top go down 
+            elseif (y == 1)
+                y = y + 1;
+                prev_move = 'D';
+            % otherwise keep going right
+            else 
+                x = x + 1;
+                prev_move = 'R';
+            end
+        elseif (strcmp(prev_move, 'D'))
+            % if hit the bottom side go right
+            if (y == frame_h)
+                x = x + 1;
+                prev_move = 'R';
+            % otherwise keep going down
+            else 
+                y = y + 1;
+                prev_move = 'D';
+            end
+        elseif (strcmp(prev_move, 'U'))
+            % if we hit the top side go right
+            if (y == 1)
+                x = x + 1;
+                prev_move = 'R';
+            % otherwise keep going up
+            else 
+                y = y - 1;
+                prev_move = 'U';
+            end
+        end
+    end
 end
 
 end
