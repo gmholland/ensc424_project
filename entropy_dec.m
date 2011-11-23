@@ -1,6 +1,8 @@
 function [frame_h, frame_w, quality, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images)
 %ENTROPY_DEC Summary of this function goes here.
 %   [] = ENTROPY_DEC(INPUT_ARGS) Detailed explanation goes here.
+%
+%   See also entropy_enc
 
 % open bitstream for reading
 fid = fopen(bitstream_name, 'r');
@@ -18,6 +20,9 @@ frameq_dec = zeros(frame_h*frame_w/64, 64, N_images);
 % initialize mvxs and mvys based on frame_h and frame_w
 mvxs = zeros(frame_h/8, frame_w/8, N_images-1);
 mvys = zeros(frame_h/8, frame_w/8, N_images-1);
+
+% get zig zag indexing pattern for motion vectors
+zag = init_zag(frame_h/8, frame_w/8);
 
 for k = 1:N_images
 
@@ -53,9 +58,9 @@ for k = 1:N_images
             mvy_dec(i) = mvy_dec(i) + mvy_dec(i-1);
         end
 
-        % reshape motion vectors to matrices
-        mvx_dec = reshape(mvx_dec, frame_h/8, frame_w/8);
-        mvy_dec = reshape(mvy_dec, frame_h/8, frame_w/8);
+        % reshape motion vectors to matrices using zig zag pattern
+        mvx_dec = mvx_dec(zag);
+        mvy_dec = mvy_dec(zag);
         
         % store in appropriate place in mvxs and mvys for returning
         mvxs(:,:,k-1) = mvx_dec;

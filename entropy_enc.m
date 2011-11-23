@@ -21,6 +21,8 @@ function [] = entropy_enc(frame_h, frame_w, frameq, mvxs, mvys, bitstream_name, 
 %           imgq_counts     uint32*Nimgq_counts
 %           Nbits_imgq_enc  uint32
 %           imgq_enc        ubit1*Nbits_imgq_enc
+%
+%   See also entropy_dec
 
 % open bitstream for writing
 fid = fopen(bitstream_name, 'w');
@@ -28,6 +30,13 @@ fid = fopen(bitstream_name, 'w');
 % write frame_h, frame_w and quality to the bitstream
 fwrite(fid, [frame_h frame_w], 'uint16');
 fwrite(fid, quality, 'uint8');
+
+% initialize row vector form of motion vectors
+mvx = zeros(1, frame_h*frame_w/64);
+mvy = zeros(1, frame_h*frame_w/64);
+
+% get zig zag indexing pattern for motion vectors
+zag = init_zag(frame_h/8, frame_w/8);
 
 % encode each frame and add to bitstream
 for k = 1:N_images
@@ -37,10 +46,10 @@ for k = 1:N_images
     % encode the motion vectors for P frames
     if (k ~= 1)
         % get mvx and mvy from motion vector arrays and convert to
-        % row vectors 
+        % row vectors using zig zag pattern
         Nmvs = frame_h*frame_w/64; % number of motion vectors for each axis
-        mvx = reshape(mvxs(:,:,k-1), 1, Nmvs);
-        mvy = reshape(mvys(:,:,k-1), 1, Nmvs);
+        mvx(zag) = mvxs(:,:,k-1);
+        mvy(zag) = mvys(:,:,k-1);
 
         % perform differential coding on the motion vectors
         mvxdiff = zeros(1,Nmvs-1);
