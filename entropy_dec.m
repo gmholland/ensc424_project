@@ -22,7 +22,7 @@ mvxs = zeros(frame_h/8, frame_w/8, N_images-1);
 mvys = zeros(frame_h/8, frame_w/8, N_images-1);
 
 % get zig zag indexing pattern for motion vectors
-zag = init_zag(frame_h/8, frame_w/8, 'vertical');
+zag = init_zag(frame_h/8, frame_w/8, 'horizontal');
 
 for k = 1:N_images
 
