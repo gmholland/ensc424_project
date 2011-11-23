@@ -36,7 +36,7 @@ mvx = zeros(1, frame_h*frame_w/64);
 mvy = zeros(1, frame_h*frame_w/64);
 
 % get zig zag indexing pattern for motion vectors
-zag = init_zag(frame_h/8, frame_w/8);
+zag = init_zag(frame_h/8, frame_w/8, 'vertical');
 
 % encode each frame and add to bitstream
 for k = 1:N_images
