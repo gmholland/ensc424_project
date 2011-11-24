@@ -1,4 +1,5 @@
-function [frame_h, frame_w, quality, frame_infos, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images)
+function [frame_h, frame_w, quality, frame_infos, frameq_dec, ... 
+          fwd_mvxs, fwd_mvys, back_mvxs, back_mvys] = entropy_dec(bitstream_name, N_images)
 %ENTROPY_DEC Summary of this function goes here.
 %   [] = ENTROPY_DEC(INPUT_ARGS) Detailed explanation goes here.
 %
@@ -24,8 +25,10 @@ for k = 1:N_images
 end
 
 % initialize mvxs and mvys based on frame_h and frame_w
-mvxs = zeros(frame_h/8, frame_w/8, N_images);
-mvys = zeros(frame_h/8, frame_w/8, N_images);
+fwd_mvxs = zeros(frame_h/8, frame_w/8, N_images);
+fwd_mvys = zeros(frame_h/8, frame_w/8, N_images);
+back_mvxs = zeros(frame_h/8, frame_w/8, N_images);
+back_mvys = zeros(frame_h/8, frame_w/8, N_images);
 
 % get zig zag indexing pattern for motion vectors
 zag = init_zag(frame_h/8, frame_w/8, 'horizontal');
@@ -42,8 +45,63 @@ for k = 1:N_images
     frame_info = frame_infos(k);
 
     % read in info for each frame from bitstream to aid decoding
+    % B frames
+    if (strcmp(frame_info.type, 'B'))
+        % read in fwd_ref, back_ref, wb
+        frame_info.fwd_ref = fread(fid, 1, 'uint8=>double');
+        frame_info.back_ref = fread(fid, 1, 'uint8=>double');
+        frame_info.wb = fread(fid, 1, 'single=>double');
+        frame_info.wf = 1 - frame_info.wb;
+        % write back to frame_infos for return values
+        frame_infos(k) = frame_info;
+
+        % motion vectors
+        mv_min_index = fread(fid, 1, 'int16=>double');
+        Nmv_counts = fread(fid, 1, 'uint16=>double');
+        mv_counts = fread(fid, Nmv_counts, 'uint32=>double');
+        Nbits_mv_enc = fread(fid, 1, 'uint32=>double');
+        mv_enc = fread(fid, Nbits_mv_enc, 'ubit1=>double');
+
+        % decode mv_enc using arithmetic decoder
+        Nsymbols = 2*frame_h*frame_w/64; 
+        % for B frames we encoded twice the mvs
+        mv_dec = arithdeco(mv_enc, mv_counts, 2*Nsymbols); 
+
+        % convert elements in imgq_dec back to positive and negative numbers 
+        % using mv_min_index
+        if (mv_min_index < 0)
+            mv_dec = mv_dec - (abs(mv_min_index) + 1);
+        end
+
+        % split motion vectors into their own vectors
+        Nmvs = frame_h*frame_w/64; % number of motion vectors 
+        fwd_mvx_dec = mv_dec(1:Nmvs);
+        fwd_mvy_dec = mv_dec(Nmvs+1:2*Nmvs);
+        back_mvx_dec = mv_dec(2*Nmvs+1:3*Nmvs);
+        back_mvy_dec = mv_dec(3*Nmvs+1:4*Nmvs);
+
+        % perform inverse differential coding to get motion vectors back
+        for i = 2:Nmvs
+            fwd_mvx_dec(i) = fwd_mvx_dec(i) + fwd_mvx_dec(i-1);
+            fwd_mvy_dec(i) = fwd_mvy_dec(i) + fwd_mvy_dec(i-1);
+            back_mvx_dec(i) = back_mvx_dec(i) + back_mvx_dec(i-1);
+            back_mvy_dec(i) = back_mvy_dec(i) + back_mvy_dec(i-1);
+        end
+
+        % reshape motion vectors to matrices using zig zag pattern
+        fwd_mvx_dec = fwd_mvx_dec(zag);
+        fwd_mvy_dec = fwd_mvy_dec(zag);
+        back_mvx_dec = back_mvx_dec(zag);
+        back_mvy_dec = back_mvy_dec(zag);
+        
+        % store in appropriate place in mvxs and mvys for returning
+        fwd_mvxs(:,:,frame_info.num) = fwd_mvx_dec;
+        fwd_mvys(:,:,frame_info.num) = fwd_mvy_dec;
+        back_mvxs(:,:,frame_info.num) = back_mvx_dec;
+        back_mvys(:,:,frame_info.num) = back_mvy_dec;
+
     % P frames
-    if (strcmp(frame_info.type, 'P'))
+    elseif (strcmp(frame_info.type, 'P'))
         % read in fwd_ref
         frame_info.fwd_ref = fread(fid, 1, 'uint8=>double');
         % write back to frame_infos for return values
@@ -68,22 +126,22 @@ for k = 1:N_images
 
         % split motion vectors into their own vectors
         Nmvs = frame_h*frame_w/64; % number of motion vectors 
-        mvx_dec = mv_dec(1:Nmvs);
-        mvy_dec = mv_dec(Nmvs+1:end);
+        fwd_mvx_dec = mv_dec(1:Nmvs);
+        fwd_mvy_dec = mv_dec(Nmvs+1:end);
 
         % perform inverse differential coding to get motion vectors back
         for i = 2:Nmvs
-            mvx_dec(i) = mvx_dec(i) + mvx_dec(i-1);
-            mvy_dec(i) = mvy_dec(i) + mvy_dec(i-1);
+            fwd_mvx_dec(i) = fwd_mvx_dec(i) + fwd_mvx_dec(i-1);
+            fwd_mvy_dec(i) = fwd_mvy_dec(i) + fwd_mvy_dec(i-1);
         end
 
         % reshape motion vectors to matrices using zig zag pattern
-        mvx_dec = mvx_dec(zag);
-        mvy_dec = mvy_dec(zag);
+        fwd_mvx_dec = fwd_mvx_dec(zag);
+        fwd_mvy_dec = fwd_mvy_dec(zag);
         
         % store in appropriate place in mvxs and mvys for returning
-        mvxs(:,:,frame_info.num) = mvx_dec;
-        mvys(:,:,frame_info.num) = mvy_dec;
+        fwd_mvxs(:,:,frame_info.num) = fwd_mvx_dec;
+        fwd_mvys(:,:,frame_info.num) = fwd_mvy_dec;
 
     end
 
