@@ -1,4 +1,4 @@
-function [frame_h, frame_w, quality, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images)
+function [frame_h, frame_w, quality, frame_infos, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images)
 %ENTROPY_DEC Summary of this function goes here.
 %   [] = ENTROPY_DEC(INPUT_ARGS) Detailed explanation goes here.
 %
@@ -17,9 +17,15 @@ quality = fread(fid, 1, 'uint8=>double');
 % initialize frameq based on frame_h, frame_w 
 frameq_dec = zeros(frame_h*frame_w/64, 64, N_images);
 
+% initialize frame_infos based on N_images
+for k = 1:N_images
+    frame_infos(k) = struct('num', 0, 'type', 0, 'fwd_ref', 0, ...
+        'back_ref', 0, 'wf', 0, 'wb', 0);
+end
+
 % initialize mvxs and mvys based on frame_h and frame_w
-mvxs = zeros(frame_h/8, frame_w/8, N_images-1);
-mvys = zeros(frame_h/8, frame_w/8, N_images-1);
+mvxs = zeros(frame_h/8, frame_w/8, N_images);
+mvys = zeros(frame_h/8, frame_w/8, N_images);
 
 % get zig zag indexing pattern for motion vectors
 zag = init_zag(frame_h/8, frame_w/8, 'horizontal');
@@ -28,8 +34,21 @@ for k = 1:N_images
 
     fprintf(' .');
 
+    % read in frame_info from bitstream
+    frame_infos(k).num = fread(fid, 1, 'uint8=>double');
+    frame_infos(k).type = fread(fid, 1, 'uint8=>char');
+
+    % get frame_info to work on
+    frame_info = frame_infos(k);
+
     % read in info for each frame from bitstream to aid decoding
-    if (k ~= 1)
+    % P frames
+    if (strcmp(frame_info.type, 'P'))
+        % read in fwd_ref
+        frame_info.fwd_ref = fread(fid, 1, 'uint8=>double');
+        % write back to frame_infos for return values
+        frame_infos(k) = frame_info;
+
         % motion vectors
         mv_min_index = fread(fid, 1, 'int16=>double');
         Nmv_counts = fread(fid, 1, 'uint16=>double');
@@ -63,11 +82,12 @@ for k = 1:N_images
         mvy_dec = mvy_dec(zag);
         
         % store in appropriate place in mvxs and mvys for returning
-        mvxs(:,:,k-1) = mvx_dec;
-        mvys(:,:,k-1) = mvy_dec;
+        mvxs(:,:,frame_info.num) = mvx_dec;
+        mvys(:,:,frame_info.num) = mvy_dec;
 
     end
 
+    % do these steps for all frame types
     imgq_min_index = fread(fid, 1, 'int16=>double');
     Nimgq_counts = fread(fid, 1, 'uint16=>double');
     imgq_counts = fread(fid, Nimgq_counts, 'uint32=>double');
@@ -88,7 +108,7 @@ for k = 1:N_images
     end
 
     % write imgq to appropriate place in frameq_dec
-    frameq_dec(:,:,k) = imgq_dec;
+    frameq_dec(:,:,frame_info.num) = imgq_dec;
 end
 
 fclose(fid);

@@ -1,14 +1,20 @@
-function [] = entropy_enc(frame_h, frame_w, frameq, mvxs, mvys, bitstream_name, N_images, quality)
+function [] = entropy_enc(frame_h, frame_w, frame_infos, frameq, mvxs, mvys, bitstream_name, N_images, quality)
 %ENTROPY_ENC Summary of this function goes here.
 %   [] = ENTROPY_ENC(INPUT_ARGS) Detailed explanation goes here.
 %
-%   Bitstream will contain:
+%   Bitstream will contain (in this order):
 %       general info:
 %           frame_h         uint16
 %           frame_w         uint16
 %           quality         uint8
+%
 %       for each frame:
-%         P frames:
+%         I, P and B frames:
+%           frame_num       uint8
+%           frame_type      uint8
+%
+%         P frames only:
+%           fwd_ref         uint8
 %           mv_min_index    int16
 %           Nmv_counts      uint16
 %           mv_counts       uint32*Nmv_counts
@@ -43,13 +49,23 @@ for k = 1:N_images
 
     fprintf(' .');
 
+    % get current frame information
+    frame_info = frame_infos(1,k); % frame_infos is a 1xN_images struct array
+
+    % write frame number and type to bitstream
+    fwrite(fid, frame_info.num, 'uint8');
+    fwrite(fid, frame_info.type, 'uint8');
+
     % encode the motion vectors for P frames
-    if (k ~= 1)
+    if (strcmp(frame_info.type, 'P'))
+        % write fwd reference number to bitstream
+        fwrite(fid, frame_info.fwd_ref, 'uint8');
+
         % get mvx and mvy from motion vector arrays and convert to
         % row vectors using zig zag pattern
         Nmvs = frame_h*frame_w/64; % number of motion vectors for each axis
-        mvx(zag) = mvxs(:,:,k-1);
-        mvy(zag) = mvys(:,:,k-1);
+        mvx(zag) = mvxs(:,:,frame_info.num);
+        mvy(zag) = mvys(:,:,frame_info.num);
 
         % perform differential coding on the motion vectors
         mvxdiff = zeros(1,Nmvs-1);
@@ -99,7 +115,7 @@ for k = 1:N_images
     end
 
     % get imgq from frameq
-    imgq = frameq(:,:,k);
+    imgq = frameq(:,:,frame_info.num);
     
     % get number of rows and columns in imgq
     [imgq_r, imgq_c] = size(imgq);

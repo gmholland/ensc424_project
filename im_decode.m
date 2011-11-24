@@ -3,7 +3,7 @@ function [] = im_decode(bitstream_name, dec_name, N_images)
 %   [] = IM_DECODE() Detailed explanation goes here.
 
 % perform entropy decoding
-[frame_h, frame_w, quality, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images);
+[frame_h, frame_w, quality, frame_infos, frameq_dec, mvxs, mvys] = entropy_dec(bitstream_name, N_images);
 
 % for each frame perform dequantization and inverse 8x8 block DCT
 % get function handle for idct2
@@ -13,17 +13,20 @@ idct2fun = @idct2;
 frame_dec = zeros(frame_h, frame_w, N_images);
 
 % initialize previous_dec to store reference frames as they are decoded
-prev_dec = zeros(frame_h, frame_w, N_images-1);
+ref_dec = zeros(frame_h, frame_w, N_images);
 
 for k = 1:N_images
 
-    fprintf('%2d', k);
+    % get current frame information
+    frame_info = frame_infos(1,k); % frame_infos is a 1xN_images struct array
+
+    fprintf('%2d', frame_info.num);
 
     % get img_dec from frameq for current frame
-    imgq_dec = frameq_dec(:,:,k);
+    imgq_dec = frameq_dec(:,:,frame_info.num);
 
-    % for I frames
-    if (k == 1) 
+    % I frames - intra frame coding only
+    if (strcmp(frame_info.type, 'I'))
 
         % dequantize the DCT coefficients
         img_dec = dequantize_DCT(imgq_dec, frame_h, frame_w, 'jpeg', quality);
@@ -32,13 +35,14 @@ for k = 1:N_images
         img_dec = blkproc(img_dec, [8 8], idct2fun);
 
         % use this frame as the reference for next
-        prev_dec(:,:,k) = img_dec;
+        ref_dec(:,:,frame_info.num) = img_dec;
 
-    % for P frames
-    else 
+    % P frames - forward motion estimation only
+    elseif (strcmp(frame_info.type, 'P'))
 
         % motion compensated prediction
-        pred = mc_prediction(prev_dec(:,:,k-1), mvxs(:,:,k-1), mvys(:,:,k-1));
+        pred = mc_prediction(ref_dec(:,:,frame_info.fwd_ref), mvxs(:,:,frame_info.num), ...
+                             mvys(:,:,frame_info.num));
 
         % dequantize the DCT coefficients of mcpr
         mcpr_dec = dequantize_DCT(imgq_dec, frame_h, frame_w, 'uniform', quality);
@@ -49,18 +53,14 @@ for k = 1:N_images
         % get the reconstructed image
         img_dec = pred + mcpr_dec;
 
-        % don't need to use the last frame to predict
-        if (k ~= N_images)
+        % use the reconstructed as the reference frame for the next image
+        ref_dec(:,:,frame_info.num) = img_dec;
 
-            % use the reconstructed as the reference frame for the next image
-            prev_dec(:,:,k) = img_dec;
-
-        end
     end
 
     % write img_dec to appropriate place in frame_dec so decoded images can be 
     % written later, pixel values must be integers so round them
-    frame_dec(:,:,k) = round(img_dec);
+    frame_dec(:,:,frame_info.num) = round(img_dec);
 
 end
 

@@ -25,6 +25,7 @@ end
 
 % run codec at various quality levels
 qualities = [10, 30, 50, 70]
+%qualities = [50];
 for quality = qualities
 
     fprintf('running at quality %d ...\n', quality);

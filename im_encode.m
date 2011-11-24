@@ -7,16 +7,26 @@ frame = imread(strcat(name, '0.pgm'));
 [M, N] = size(frame);
 clear frame;
 
+% get information about each frame, type (I, P, B), ordering etc.
+frame_infos = init_frame_info();
+
 % initialize frame_q M*N/64-by-64-by-N_images array to hold quantized DCT
-% coefficients for each block within each image
+% coefficients for each block within each image. Same structure used to hold
+% data for I, P and B frames
 frameq = zeros(M*N/64, 64, N_images);
 
-% initialize prev to hold the reference frames for motion estimation
-prev = zeros(M, N, N_images-1);
+% initialize ref to hold the reference frames for motion estimation
+ref = zeros(M, N, N_images-1);
 
-% initialize mvx and mvy to hold motion vectors for each block in each image
-mvxs = zeros(M/8, N/8, N_images-1);
-mvys = zeros(M/8, N/8, N_images-1);
+% initialize fwd_mvxs and fwd_mvys to hold forward motion vectors for each 
+% block in each image
+fwd_mvxs = zeros(M/8, N/8, N_images);
+fwd_mvys = zeros(M/8, N/8, N_images);
+
+% initialize back_mvxs and back_mvys to hold backward motion vectors for each 
+% block in each image
+%back_mvxs = zeros(M/8, N/8, N_images);
+%back_mvys = zeros(M/8, N/8, N_images);
 
 % get function handles for 2 dimensional DCT and IDCT
 dct2fun = @dct2;
@@ -24,16 +34,19 @@ idct2fun = @idct2;
 
 for k = 1:N_images
 
-    fprintf('%2d', k);
+    % get current frame information
+    frame_info = frame_infos(1,k); % frame_infos is a 1xN_images struct array
+
+    fprintf('%2d', frame_info.num);
 
     % read the frame, images in sets start numbering at 0
-    img = imread(strcat(name, num2str(k-1), '.pgm'), 'pgm');
+    img = imread(strcat(name, num2str(frame_info.num-1), '.pgm'), 'pgm');
 
     % convert to double and centre values about 0
     img = double(img) - 128;
 
-    % I frame
-    if (k == 1)
+    % I frames - intra frame coding only
+    if (strcmp(frame_info.type, 'I'))
 
         % perform 8x8 block DCT to image
         img = blkproc(img, [8 8], dct2fun);
@@ -43,26 +56,26 @@ for k = 1:N_images
         img = dequantize_DCT(imgq, M, N, 'jpeg', quality);
  
         % store imgq in appropriate place in frameq so it can be entropy encoded
-        frameq(:,:,k) = imgq;
+        frameq(:,:,frame_info.num) = imgq;
 
         % perform 8x8 block IDCT to the I frame
         img = blkproc(img, [8 8], idct2fun);
 
         % use this frame as the reference for next
-        prev(:,:,k) = img;
+        ref(:,:,frame_info.num) = img;
 
-    % only do motion estimation and mc prediction for P frames
-    else
+    % P frames - forward motion estimation only
+    elseif (strcmp(frame_info.type, 'P'))
 
-        % motion estimation
-        [mvx, mvy] = motion_estimation(prev(:,:,k-1), img, 8, 8, 16);
+        % 8x8 block forward motion estimation from appropriate ref, search range 16
+        [mvx, mvy] = motion_estimation(ref(:,:,frame_info.fwd_ref), img, 8, 8, 16);
 
         % store motion vectors so they can be entropy encoded
-        mvxs(:,:,k-1) = mvx;
-        mvys(:,:,k-1) = mvy;
+        fwd_mvxs(:,:,frame_info.num) = mvx;
+        fwd_mvys(:,:,frame_info.num) = mvy;
 
         % motion compensated prediction
-        pred = mc_prediction(prev(:,:,k-1), mvx, mvy);
+        pred = mc_prediction(ref(:,:,frame_info.fwd_ref), mvx, mvy);
         mcpr = img - pred;
 
         % perform 8x8 block DCT to the residual frame
@@ -73,24 +86,30 @@ for k = 1:N_images
         mcpr = dequantize_DCT(mcprq, M, N, 'uniform', quality);
 
         % store mcprq in appropriate place in frameq so it can be entropy encoded
-        frameq(:,:,k) = mcprq;
+        frameq(:,:,frame_info.num) = mcprq;
 
-        % don't need to use the last frame to predict
-        if (k ~= N_images)
+        % perform 8x8 block IDCT to the residual frame
+        mcpr = blkproc(mcpr, [8 8], idct2fun);
 
-            % perform 8x8 block IDCT to the residual frame
-            mcpr = blkproc(mcpr, [8 8], idct2fun);
+        % get the reoncstructed frame and store it as reference for later frames
+        ref(:,:,frame_info.num) = pred + mcpr;
 
-            % get the reoncstructed frame and use it as the reference frame
-            % for the next image
-            prev(:,:,k) = pred + mcpr;
-        end
+        % write out ref image for DEBUG
+        %ref_filename = strcat(name, num2str(frame_info.num-1), '_ref.pgm');
+        %imwrite(uint8(ref(:,:,frame_info.num) + 128), ref_filename, 'pgm');
 
+        % write out mcpr image for DEBUG
+        %mcpr_filename = strcat(name, num2str(frame_info.num-1), '_mcpr.pgm');
+        %imwrite(uint8(mcpr + 128), mcpr_filename, 'pgm');
+
+        % write out pred image for DEBUG
+        %pred_filename = strcat(name, num2str(frame_info.num-1), '_pred.pgm');
+        %imwrite(uint8(pred + 128), pred_filename, 'pgm');
     end
 
 end
 
 % encode the DCT coefficients for each frame
-entropy_enc(M, N, frameq, mvxs, mvys, bitstream_name, N_images, quality);
+entropy_enc(M, N, frame_infos, frameq, fwd_mvxs, fwd_mvys, bitstream_name, N_images, quality);
 
 end
