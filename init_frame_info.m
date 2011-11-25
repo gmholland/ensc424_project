@@ -3,23 +3,23 @@ function [frames, types, order] = init_frame_info()
 %   frames = INIT_FRAMES(order) Detailed explanation goes here.
 
 % encode/decode order by frame number
-order = [1 4 2 3 7 5 6];
+order = [1 3 2 5 4 7 6];
 N_images = length(order);
 
 % frame types
-types = ['I' 'B' 'B' 'I' 'B' 'B' 'I'];
+types = ['I' 'B' 'P' 'B' 'P' 'B' 'P'];
 types = types(order);
 
-fwd_ref = [0 1 1 0 4 4 0];
+fwd_ref = [0 1 1 3 3 5 5];
 fwd_ref = fwd_ref(order);
 
-back_ref = [0 4 4 0 7 7 0];
+back_ref = [0 3 0 5 0 7 0];
 back_ref = back_ref(order);
 
 % forward and backward weights
-wf = [0 2/3 1/3 0 2/3 1/3 0];
+wf = [0 1/2 1/2 0 1/2 1/2 0];
 wf = wf(order);
-wb = [0 1/3 2/3 0 1/3 2/3 0];
+wb = [0 1/2 1/2 0 1/2 1/2 0];
 wb = wb(order);
 
 %%%% encode/decode order by frame number
