@@ -1,6 +1,21 @@
-function [MSEs, PSNRs, bitrates] = run_codec(name, dec_name, N_images)
+function [MSEs, PSNRs, bitrates] = run_codec(name, dec_name, N_images, qualities)
 %RUN_CODEC Run the project codec at various quaility levels
-%   [MSEs, PSNRs, bitrates] = RUN_CODEC(NAME, DEC_NAME, N_IMAGES)
+%   [MSEs, PSNRs, BITRATES] = RUN_CODEC(NAME, DEC_NAME, N_IMAGES, QUALITIES) 
+%   Runs the project codec on the image set with common prefix of NAME that 
+%   contains N_IMAGES different images. DEC_NAME specifies the common prefix 
+%   to use for naming the decoded images. The encoder and decoder are run
+%   once for each quality value specified in the row vector QUALITIES.
+%
+%   This function also computes MSE, PSNR and bitrates in bits in bits per
+%   pixel for each quality value in QUALITIES. These stats are returned in
+%   MSEs, PSNRs and BITRATES respectively. Additionally these results are 
+%   saved to a MAT file with filename NAME.MAT.
+%
+%   The rate-distortion curve for the codec is also plotted. Additionally,
+%   if NAME is one of 'aloe' or 'art', the benchmark rate-distortion curves
+%   for the project are plotted in red on the same plot.
+%   
+%   See also im_encode im_decode
 
 bitstream_name = strcat(name, '.bit');
 
@@ -24,8 +39,6 @@ for k = 1:N_images
 end
 
 % run codec at various quality levels
-qualities = [10, 30, 50, 70]
-%qualities = [50];
 for quality = qualities
 
     fprintf('running at quality %d ...\n', quality);

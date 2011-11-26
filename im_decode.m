@@ -1,6 +1,12 @@
 function [] = im_decode(bitstream_name, dec_name, N_images)
-%IM_DECODE Summary of this function goes here.
-%   [] = IM_DECODE() Detailed explanation goes here.
+%IM_DECODE Run the project decoder
+%   [] = IM_DECODE(BITSTREAM_NAME, DEC_NAME, N_IMAGES) runs the project
+%   decoder using the bitstream specified by BITSTREAM_NAME as input. The
+%   bitstream given must be one produced by the im_encode function run on
+%   a set with N_IMAGES different images. DEC_NAME specifies the common 
+%   prefix to use when naming the decoded files.
+%
+%   See also im_encode entropy_dec
 
 % perform entropy decoding
 [frame_h, frame_w, quality, frame_infos, frameq_dec, ...

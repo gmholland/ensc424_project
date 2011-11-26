@@ -1,8 +1,20 @@
 function [] = entropy_enc(frame_h, frame_w, frame_infos, frameq, ...
                           fwd_mvxs, fwd_mvys, back_mvxs, back_mvys, ...
                           bitstream_name, N_images, quality)
-%ENTROPY_ENC Summary of this function goes here.
-%   [] = ENTROPY_ENC(INPUT_ARGS) Detailed explanation goes here.
+%ENTROPY_ENC Perform entropy encoding for project encoder
+%   [] = ENTROPY_ENC(FRAME_H, FRAME_W, FRAME_INFOS, FRAMEQ
+%                    FWD_MVXS, FWD_MVYS, BACK_MVXS, BACK_MVYS
+%                    BITSTREAM_NAME, N_IMAGES, QUALITY)
+%   Performs entropy encoding on the data generated during the execution of
+%   im_encode, writing information needed by the decoder to the bitstream
+%   specified by BITSTREAM_NAME.
+%
+%   FRAME_H and FRAME_W are the frame height and width respectively.
+%   FRAME_INFOS is a 1-by-N_IMAGES struct array containing the information 
+%   about each frame including fields for frame number, type etc. FRAMEQ is 
+%   3 dimensional array holding the quantized DCT coefficients for each of
+%   the encoded frames. FWD_MVXS, FW_MVYS, BACK_MVXS and BACK_MVYS all
+%   contain motion vectors for each frame.
 %
 %   Bitstream will contain (in this order):
 %       general info:
@@ -40,7 +52,7 @@ function [] = entropy_enc(frame_h, frame_w, frame_infos, frameq, ...
 %           Nbits_imgq_enc  uint32
 %           imgq_enc        ubit1*Nbits_imgq_enc
 %
-%   See also entropy_dec
+%   See also im_encode entropy_dec
 
 % open bitstream for writing
 fid = fopen(bitstream_name, 'w');
@@ -70,7 +82,7 @@ for k = 1:N_images
     fwrite(fid, frame_info.num, 'uint8');
     fwrite(fid, frame_info.type, 'uint8');
 
-    % encode the motion vectors for B frames
+    % B frames - encode both forward and backward motion vectors
     if (strcmp(frame_info.type, 'B'))
         % write fwd reference number to bitstream
         fwrite(fid, frame_info.fwd_ref, 'uint8');
@@ -140,7 +152,7 @@ for k = 1:N_images
         fwrite(fid, Nbits_mv_enc, 'uint32');
         fwrite(fid, mv_enc, 'ubit1');
 
-    % encode the motion vectors for P frames
+    % P frames - encode only forward motion vectors
     elseif (strcmp(frame_info.type, 'P'))
         % write fwd reference number to bitstream
         fwrite(fid, frame_info.fwd_ref, 'uint8');
@@ -164,7 +176,6 @@ for k = 1:N_images
 
         % concatenate motion vector vectors
         mv = [fwd_mvx, fwd_mvy];
-        clear fwd_mvx fwd_mvy;
 
         % convert mvs to positive numbers by adding the min element
         mv_min_index = min(min(mv));

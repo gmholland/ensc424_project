@@ -2,14 +2,17 @@ function dct_mat_dec = dequantize_DCT(imgq_dec, M, N, quant_type, quality)
 %DEQUANTIZE_DCT Dequantize DCT coefficients
 %   DCT_MAT_DEC = DEQUANTIZE_DCT(IMGQ_DEC, M, N, QUANT_TYPE, QUALITY) 
 %   dequantizes the DCT coefficients from IMQ_DEC where each row in IMQ_DEC 
-%   corresponds to the 64 DCT coefficients of an 8x8 block. 
+%   corresponds to the 64 DCT coefficients of an 8x8 block arranged according
+%   to the zig zag pattern from the JPEG specification.
 %
 %   There are two options for QUANT_TYPE, 'jpeg' uses a JPEG like quantizer 
 %   while 'uniform' uses a uniform quantizer. QUALITY determines the scaling
-%   on the quantizer size.
+%   on the quantizer size and should be in the range 1 to 100.
 %   
 %   The matrix of DCT coefficients for the frame is returned in DCT_MAT_DEC, 
 %   where M and N are the frame height and width of the returned frame.
+%
+%   See also quantize_DCT init_quantizer 
 
 % get quantizer vector and zig zag pattern
 [qt, zag] = init_quantizer(quant_type, quality);

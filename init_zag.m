@@ -1,5 +1,5 @@
 function zag = init_zag(frame_h, frame_w, zag_type)
-%INIT_ZAG Initialize a zig zag traversal matrix
+%INIT_ZAG Initialize a zig zag traversal matrix for motion vector scanning
 %   ZAG = INIT_ZAG(FRAME_H, FRAME_W, ZAG_TYPE) returns a matrix with elements 
 %   increasing in a zig zag pattern. FRAME_H is the number of rows and FRAME_W 
 %   is the number of columns in the motion vector matrix. ZAG_TYPE is one of 

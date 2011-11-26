@@ -4,12 +4,16 @@ function imgq = quantize_DCT(dct_frame, quant_type, quality)
 %   frame DCT_FRAME using the quantization matrix and zig-zag pattern. 
 %   
 %   There are two options for QUANT_TYPE, 'jpeg' or 'uniform'. 'jpeg' uses
-%   jpeg quantizer for the given QUALITY while 'uniform' uses a uniform 
-%   quantizer.
+%   a JPEG like quantizer while 'uniform' uses a uniform quantizer. QUALITY
+%   determines the scaling on the quantizer size and should be in the range
+%   1 to 100.
 %
 %   The quantized DCT coefficients for each block appear in each row of 
-%   IMGQ. IMGQ is therefore a M*N/64 by 64 matrix where the dimensions of 
-%   DCT_FRAME are M by N.
+%   IMGQ arranged according to the zig zag pattern from the JPEG specification. 
+%   IMGQ is therefore a M*N/64 by 64 matrix where the dimensions of DCT_FRAME 
+%   are M by N.
+%
+%   See also dequantize_DCT init_quantizer 
 
 [M, N] = size(dct_frame);
 
@@ -53,8 +57,6 @@ end
 
 % replace DC coefficients (stored in 1st col of each row in imgq) with
 % the difference between itself and previous DC coefficient
-%
-% TODO vectorize this operation if possible
 DCdiff = zeros(1,imgq_r-1).';
 for i = 2:imgq_r
     DCdiff(i-1,1) = imgq(i,1) - imgq(i-1,1);

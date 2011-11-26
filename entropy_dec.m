@@ -1,9 +1,18 @@
 function [frame_h, frame_w, quality, frame_infos, frameq_dec, ... 
-          fwd_mvxs, fwd_mvys, back_mvxs, back_mvys] = entropy_dec(bitstream_name, N_images)
-%ENTROPY_DEC Summary of this function goes here.
-%   [] = ENTROPY_DEC(INPUT_ARGS) Detailed explanation goes here.
+          fwd_mvxs, fwd_mvys, back_mvxs, back_mvys] = ...
+                                    entropy_dec(bitstream_name, N_images)
+%ENTROPY_DEC Perform entropy decoding for project decoder
+%   [FRAME_H, FRAME_W, QUALITY, FRAME_INFOS, FRAMEQ_DEC, ...
+%    FWD_MVXS, FWD_MVYS, BACK_MVXS, BACK_MVYS] = ...
+%                                   ENTROPY_DEC(BITSTREAM_NAME, N_IMAGES) 
+%   Performs entropy decoding on the data contained with the bitstream
+%   specified by BITSTREAM_NAME produced by entropy_enc.
 %
-%   See also entropy_enc
+%   The many return values from this function are used by the im_decode
+%   function to continue decoding the images. See the documentation for
+%   entropy_enc for the meaning of each of the return values.
+%
+%   See also im_decode entropy_enc 
 
 % open bitstream for reading
 fid = fopen(bitstream_name, 'r');

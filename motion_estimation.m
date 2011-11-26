@@ -6,7 +6,7 @@ function [mvx, mvy] = motion_estimation(prev, curr, blkx, blky, search_range)
 %   the motion estimation have BLKY rows and BLKX columns. 
 %
 %   Parameter SEARCH_RANGE specifies the range over which the block in 
-%   the current frame will search for the best mathcing block in the 
+%   the current frame will search for the best matching block in the 
 %   previous frame. For example, if search_range = 16, then the best
 %   matching block will be searched over +/-16 pixels (horizontally 
 %   and vertically) relative to the position of the current block.

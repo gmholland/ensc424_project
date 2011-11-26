@@ -1,8 +1,9 @@
 function [qt, zag] = init_quantizer(quant_type, quality)
-% INIT_JPEG Initialize quantization table and zig-zag scan for image coding.
+% INIT_QUANTIZER Initialize quantization table and zig-zag scan. 
 %    [QT, ZAG] = INIT_QUANTIZER(QUANT_TYPE, QUALITY) 
-%    Returns the a row vector QT which is the quantization step sizes for the 
-%    DCT coefficients of an 8x8 block. 
+%    Returns the a row vector QT which is the quantization step sizes for
+%    the DCT coefficients of an 8x8 block arranged according to the zig zag
+%    pattern from the JEPG specification.
 %    
 %    QUANT_TYPE specifies the quantizer type and must be one of 'uniform' or
 %    'jpeg', where uniform returns a uniform quantizer while 'jpeg' returns 

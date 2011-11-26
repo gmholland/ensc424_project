@@ -1,11 +1,13 @@
 function pred = mc_prediction(prev, mvx, mvy)
 %MC_PREDICTION Block-based motion-compensated prediction
-%   [MCPR, PRED] = MC_PREDICTION(PREV, MVX, MVY)
+%   PRED = MC_PREDICTION(PREV, MVX, MVY)
 %   This function performs block-based motion-compensated prediction of
-%   the a frame from the previous frame, PREV, using the motion vector 
-%   field described by MVX and MVY.
+%   a frame from the previous frame, PREV, using the motion vector field 
+%   described by MVX and MVY.
 %
 %   The predicted frame will be returned in PRED.
+%
+%   See also motion_estimation
 
 % calculate size of blocks
 [prev_h, prev_w] = size(prev);

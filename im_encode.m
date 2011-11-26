@@ -1,6 +1,17 @@
 function [] = im_encode(name, bitstream_name, N_images, quality)
-%IM_ENCODE Summary of this function goes here.
-%   [] = IM_ENCODE(INPUT_ARGS) Detailed explanation goes here.
+%IM_ENCODE Run the project encoder
+%   [] = IM_ENCODE(NAME, BITSTREAM_NAME, N_IMAGES, QUALITY) runs the
+%   project encoder on the image set with common prefix NAME and N_IMAGES
+%   different images. BITSTREAM_NAME specifies the filename to use as the
+%   bitstream as the output of the encoder. 
+%
+%   QUALITY is a parameter that determines the rate-distortion 
+%   characteristic for the output of the encoder and should be in the range
+%   1 to 100. Lower values for QUALITY will result in lower image PSNR but
+%   with subsequently lower bitrate and vice versa. These quality levels 
+%   correspond roughly to the quality defined in the JPEG standard
+%
+%   See also im_decode entropy_enc
 
 % read in the first image and use it to determine dimensions
 frame = imread(strcat(name, '0.pgm'));
