@@ -67,8 +67,8 @@ for k = 1:N_images
     % P frames - forward motion estimation only
     elseif (strcmp(frame_info.type, 'P'))
 
-        % 8x8 block forward motion estimation from appropriate ref, search range 16
-        [mvx, mvy] = motion_estimation(ref(:,:,frame_info.fwd_ref), img, 8, 8, 16);
+        % 8x8 block forward motion estimation from appropriate ref, search range 24
+        [mvx, mvy] = motion_estimation(ref(:,:,frame_info.fwd_ref), img, 8, 8, 24);
 
         % store motion vectors so they can be entropy encoded
         fwd_mvxs(:,:,frame_info.num) = mvx;
