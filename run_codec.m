@@ -24,7 +24,7 @@ for k = 1:N_images
 end
 
 % run codec at various quality levels
-qualities = [10, 30, 50, 70]
+qualities = [10, 30, 50, 70];
 %qualities = [50];
 for quality = qualities
 

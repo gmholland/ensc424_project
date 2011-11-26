@@ -17,9 +17,9 @@ back_ref = [0 3 0 5 0 7 0];
 back_ref = back_ref(order);
 
 % forward and backward weights
-wf = [0 1/2 1/2 0 1/2 1/2 0];
+wf = [0 1/2 0 1/2 0 1/2 0];
 wf = wf(order);
-wb = [0 1/2 1/2 0 1/2 1/2 0];
+wb = [0 1/2 0 1/2 0 1/2 0];
 wb = wb(order);
 
 %%%% encode/decode order by frame number
