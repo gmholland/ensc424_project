@@ -16,23 +16,25 @@ function [frames, order] = init_frame_info(N_images)
 %       wb - weighting factor for backward motion compensation
 
 % encode/decode order by frame number
-order = [1 2 3 4 5 6 7];
-N_images = length(order);
+order = 1:N_images;
 
 % frame types
-types = ['I' 'P' 'P' 'P' 'P' 'P' 'P'];
+types(1) = 'I';
+for k = 2:N_images
+    types(k) = 'P';
+end
 types = types(order);
 
-fwd_ref = [0 1 2 3 4 5 6];
+fwd_ref = 0:N_images-1;
 fwd_ref = fwd_ref(order);
 
-back_ref = [0 0 0 0 0 0 0];
+back_ref = zeros(1,N_images);
 back_ref = back_ref(order);
 
 % forward and backward weights
-wf = [0 0 0 0 0 0 0];
+wf = zeros(1,N_images);
 wf = wf(order);
-wb = [0 0 0 0 0 0 0];
+wb = zeros(1,N_images);
 wb = wb(order);
 
 for i = 1:N_images

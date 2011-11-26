@@ -19,7 +19,7 @@ frame = imread(strcat(name, '0.pgm'));
 clear frame;
 
 % get information about each frame, type (I, P, B), ordering etc.
-frame_infos = init_frame_info();
+frame_infos = init_frame_info(N_images);
 
 % initialize frame_q M*N/64-by-64-by-N_images array to hold quantized DCT
 % coefficients for each block within each image. Same structure used to hold
